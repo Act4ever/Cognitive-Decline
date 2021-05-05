@@ -1,0 +1,57 @@
+---
+title: "Trajectory of Cognitive Decline"
+output: html_document
+---
+
+```{r}
+setwd("C:/Users/lcy20/OneDrive/Desktop/HRS")
+dataset <- read.csv("newdata.csv")
+
+
+## wide to long
+a_long <- reshape(dataset,
+             varying =c("X1996", "X1998", "X2000", "X2002", "X2004", "X2006",
+                        "X2008", "X2010", "X2012", "X2014", "X2016"),
+             v.names = "score",
+             timevar = "year",
+             times = c("X1996", "X1998", "X2000", "X2002", "X2004", "X2006",
+                       "X2008", "X2010", "X2012", "X2014", "X2016"),
+             direction="long")
+a.sort <-a_long[order(a_long$ID),]
+
+
+#remove "X" from in front of the year
+destroyX = function(es) {
+  f = es
+  for (col in c(1:ncol(f))){ #for each column in dataframe
+    if (startsWith(colnames(f)[col], "X") == TRUE)  { #if starts with 'X' ..
+      colnames(f)[col] <- substr(colnames(f)[col], 2, 100) #get rid of it
+    }
+  }
+  assign(deparse(substitute(es)), f, inherits = TRUE) #assign corrected data to original name
+}
+
+
+
+ID <- a.sort$ID
+year <-c("1996", "1998", "2000", "2002", "2004", "2006",
+         "2008", "2010", "2012", "2014", "2016")
+score <- a.sort$score
+data_new <- data.frame(ID, year, score)
+data_new <- within(data_new, {
+  ID <- factor(ID)
+})
+data_new$year <- as.numeric(as.character(data_new$year))
+                            
+                            
+data1<-head(data_new,220)
+
+
+require(ggplot2)
+
+p <- ggplot(data1, aes(x = year, y = score, color = ID))
+p+geom_point()
+p+geom_line()                        
+p+geom_smooth(method=lm,se=FALSE)
+```
+
